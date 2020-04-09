@@ -53,7 +53,7 @@ func (s *SQSService) Read() ([]*Message, error) {
 func (s *SQSService) Delete(message *Message) error {
 	rh, ok := message.Properties["receiptHandle"].(*string)
 	if !ok {
-		panic("Unexpected input: SQS message without a receipt handle")
+		return errors.New("Unexpected input: SQS message without a receipt handle")
 	}
 
 	_, err := s.Client.DeleteMessage(&sqs.DeleteMessageInput{

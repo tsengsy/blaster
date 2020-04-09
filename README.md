@@ -40,3 +40,10 @@ Launch the handler with blaster (this should be executed in the directory contai
 ```
 blaster sqs --queue-name "test" --region "ap-southeast-2" --handler-command ./handler.js
 ```
+
+#### Step 3. Create a SQS Message
+
+```
+aws sqs send-message --queue-url <sqs_url> --message-body "hey hey" | cat
+
+```

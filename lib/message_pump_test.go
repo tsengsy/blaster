@@ -8,6 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+	Create a new Mocked Queue Service, create a mesage, and expect it to return nil after deletion
+*/
 func TestBasicMessageDispatch(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
