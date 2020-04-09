@@ -16,38 +16,32 @@ limitations under the License.
 package cmd
 
 import (
-	"blaster/lib"
-	"fmt"
-	"time"
+	"blaster/core"
+	"blaster/sqs"
 
 	"github.com/spf13/cobra"
 )
 
 var queueName, region string
-var maxNumberOfMesages, waitTimeSeconds, retryDelaySeconds int64
-var retryCount int
+var waitTimeSeconds int64
+var maxNumberOfMesages int64
 
 // sqsCmd represents the sqs command
 var sqsCmd = &cobra.Command{
 	Use:   "sqs",
-	Short: "Start a message pump for an AWS sqs backend",
+	Short: "Start blaster for an AWS sqs backend",
 	Long:  ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		config := lib.SQSConfiguration{
+		sqsConfig := &sqs.SQSConfiguration{
 			QueueName:           queueName,
 			MaxNumberOfMessages: maxNumberOfMesages,
 			WaitTime:            waitTimeSeconds,
 			Region:              region,
 		}
 
-		sqs, err := lib.NewSQSService(&config)
-		if err != nil {
-			panic(err)
-		}
-
-		dispatcher := lib.NewHttpDispatcher(fmt.Sprintf("http://localhost:%d/", handlerPort))
-		mp := lib.NewMessagePump(sqs, dispatcher, retryCount, time.Second*time.Duration(retryDelaySeconds))
-		return lib.StartTheSystem(mp, handlerCommand, handlerArgv)
+		config := GetConfig()
+		binding := sqs.NewSQSBinder(sqsConfig, config)
+		return core.RunCLIInstance(binding, config)
 	},
 }
 
@@ -65,10 +59,8 @@ func init() {
 	// startSqsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	sqsCmd.Flags().StringVarP(&queueName, "queue-name", "q", "", "queue name")
 	sqsCmd.Flags().StringVarP(&region, "region", "r", "", "queue region")
-	sqsCmd.Flags().Int64VarP(&maxNumberOfMesages, "max-number-of-messages", "m", 1, "max number of messages to receive in a single poll")
 	sqsCmd.Flags().Int64VarP(&waitTimeSeconds, "wait-time-seconds", "w", 1, "wait time between polls")
-	sqsCmd.Flags().IntVarP(&retryCount, "retry-count", "c", 0, "number of retry attempts")
-	sqsCmd.Flags().Int64VarP(&retryDelaySeconds, "retry-delay-seconds", "d", 1, "delay between retry attempts")
+	sqsCmd.Flags().Int64VarP(&maxNumberOfMesages, "max-number-of-messages", "m", 1, "max number of messages to receive in a single poll")
 	sqsCmd.MarkFlagRequired("queue-name")
 	sqsCmd.MarkFlagRequired("region")
 }

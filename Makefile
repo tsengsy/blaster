@@ -1,4 +1,4 @@
-.PHONY: build clean build-local test
+.PHONY: build clean install test
 
 TARGET=
 SUFFIX=$(GOOS)_$(GOARCH)
@@ -7,13 +7,13 @@ TARGET=_$(SUFFIX)
 endif
 
 build:
-	go build -o "./build/blaster${TARGET}"
+	CGO_ENABLED=0 go build -o "./build/blaster${TARGET}${EXTENSION}"
 
 clean:
 	rm -rf ./build
 
 test: build
-	go test -covermode=count -coverpkg="blaster,blaster/lib,blaster/cmd" -coverprofile=build/cover.out ./...
+	CGO_ENABLED=0 go test -timeout 5s -covermode=count -coverpkg="blaster,blaster/core,blaster/cmd,blaster/sqs,blaster/kafka" -coverprofile=build/cover.out ./...
 
-build-local: build
+install: build
 	cp "./build/blaster${TARGET}" /usr/local/bin/
